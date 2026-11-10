@@ -1,0 +1,25 @@
+# Virtual environment
+venv/
+.venv/
+
+# Bytecode / Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python package metadata
+*.egg-info/
+dist/
+build/
+
+# Test coverage
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Linter
+.ruff_cache/
