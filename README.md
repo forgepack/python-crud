@@ -22,6 +22,17 @@ Reusable Python application template built with FastAPI.
 
 - `GET /` returns `{"message": "Hello, World!"}`.
 - `GET /health` returns `{"status": "healthy"}`.
+- `POST /admin/init/create-first-user` creates the first admin user (no auth required).
+- `POST /user/login` authenticates and returns JWT token.
+- `GET /user/` lists all users (requires authentication).
+- `POST /user/` creates a new user (requires authentication).
+- `GET /user/{id}` gets a user by ID.
+- `PUT /user/` updates a user (requires authentication).
+- `DELETE /user/{id}` deletes a user (requires authentication).
+- `GET /role/`, `POST /role/`, `PUT /role/`, `DELETE /role/{id}` for role management.
+- `GET /permissions/`, `DELETE /permissions/{id}` for permission management.
+
+**Full API documentation**: See [ENDPOINTS.md](./ENDPOINTS.md)
 
 ## Configuration
 ### _Windows PowerShell_

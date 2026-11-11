@@ -40,11 +40,20 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 ```
 
+Configure the database in `.env`:
+
+```bash
+cp .env.example .env
+# Edit .env with your PostgreSQL credentials
+```
+
 Run the application:
 
 ```bash
 python -m app.main
 ```
+
+For a quick start, see [QUICKSTART.md](./QUICKSTART.md). For full API documentation, see [ENDPOINTS.md](./ENDPOINTS.md).
 
 ## Quality checks
 
