@@ -58,3 +58,13 @@ select = [
 "app/routers/*.py" = [
     "B008",     # FastAPI-specific configuration
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib -m 'not e2e'"
+markers = [
+    "unit: isolated tests, no I/O",
+    "integration: in-process app/routers with dependencies replaced",
+    "e2e: require a running server (E2E_BASE_URL)",
+]
+
