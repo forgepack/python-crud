@@ -1,13 +1,27 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
+import app.models.join
+import app.models.permission
+import app.models.role
+import app.models.user
 from app.config import settings
+from app.database import create_tables
 from app.routers.admin import admin
 from app.routers.permission import permission
 from app.routers.role import role
 from app.routers.user import user
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application startup and shutdown."""
+
+    create_tables()
+    yield
 
 app = FastAPI(
     title="Python CRUD API",
@@ -40,6 +54,7 @@ app = FastAPI(
     Include token in header: `Authorization: Bearer eyJhbGciOiJIUzI1NiIs...`
     """,
     version="1.0.0",
+    lifespan=lifespan,
     contact={
         "name": "Gadelha TI",
         "url": "https://github.com/gadelhati",
