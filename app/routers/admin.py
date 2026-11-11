@@ -11,14 +11,47 @@ from app.services.user import ServiceUser
 admin = APIRouter(prefix="/admin", tags=["admin"])
 
 
-@admin.post("/init/create-first-user", status_code=status.HTTP_201_CREATED, response_model=ResponseError)
+@admin.post("/init/create-first-user", status_code=status.HTTP_201_CREATED, response_model=ResponseError, summary="Initialize database with first admin user")
 async def create_first_user(
     request: DTOUserCreate,
     db: Session = Depends(get_db),
 ):
     """
     Create the first admin user (no authentication required).
-    This endpoint should only work if no users exist in the database.
+    
+    **⚠️ Important:** This endpoint only works if no users exist in the database.
+    
+    Use this endpoint to initialize the application on first run.
+    After the first user is created, you must authenticate to create additional users.
+    
+    **Parameters:**
+    - **username** (string): Admin username (e.g., "admin")
+    - **email** (string): Admin email address
+    - **password** (string): Secure password
+    - **full_name** (string): Administrator's full name
+    
+    **Returns:**
+    - Created user object with id and metadata
+    
+    **Status Codes:**
+    - 201: First user created successfully
+    - 403: Database already initialized (users exist)
+    - 400: Invalid input data
+    - 500: Server error
+    
+    **Example Request:**
+    ```json
+    {
+      "username": "admin",
+      "email": "admin@example.com",
+      "password": "SecurePassword123!",
+      "full_name": "Administrator"
+    }
+    ```
+    
+    **Next Steps:**
+    1. After successful creation, use POST /user/login with these credentials
+    2. Use the returned token in Authorization header for other endpoints
     """
     try:
         service = ServiceUser(db)
