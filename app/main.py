@@ -16,12 +16,14 @@ from app.routers.permission import permission
 from app.routers.role import role
 from app.routers.user import user
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application startup and shutdown."""
 
     create_tables()
     yield
+
 
 app = FastAPI(
     title="Python CRUD API",
