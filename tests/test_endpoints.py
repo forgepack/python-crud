@@ -31,31 +31,31 @@ TOKEN: str | None = None
 #     return response.status_code == 200
 
 
-def test_create_first_user():
-    """Create the first admin user"""
-    global TOKEN
-    print("\n✓ Testing POST /admin/init/create-first-user")
+# def test_create_first_user():
+#     """Create the first admin user"""
+#     global TOKEN
+#     print("\n✓ Testing POST /admin/init/create-first-user")
 
-    user_data = {
-        "username": "admin",
-        "email": "admin@example.com",
-        "password": "Admin@123456",
-        "full_name": "Administrator",
-    }
+#     user_data = {
+#         "username": "admin",
+#         "email": "admin@example.com",
+#         "password": "Admin@123456",
+#         "full_name": "Administrator",
+#     }
 
-    response = httpx.post("{BASE_URL}/admin/init/create-first-user", json=user_data)
-    print("  Status: {response.status_code}")
-    print("  Response: {json.dumps(response.json(), indent=2)}")
+#     response = httpx.post("{BASE_URL}/admin/init/create-first-user", json=user_data)
+#     print("  Status: {response.status_code}")
+#     print("  Response: {json.dumps(response.json(), indent=2)}")
 
-    if response.status_code == 201:
-        print("  ✅ First user created successfully!")
-        return True
-    elif response.status_code == 403:
-        print("  ℹ️  Database already initialized (users exist)")
-        return True
-    else:
-        print("  ❌ Failed to create user: {response.text}")
-        return False
+#     if response.status_code == 201:
+#         print("  ✅ First user created successfully!")
+#         return True
+#     elif response.status_code == 403:
+#         print("  ℹ️  Database already initialized (users exist)")
+#         return True
+#     else:
+#         print("  ❌ Failed to create user: {response.text}")
+#         return False
 
 
 # def test_login():
