@@ -72,11 +72,14 @@ python -m app.main
 # checks whether the code follows the formatting standard
 python -m ruff format --check .
 
-# Automatically formats the code to follow the standard
+# automatically formats the code to follow the standard
 python -m ruff format .
 
-# Identifies linting issues and potential code errors
+# identifies linting issues and potential code errors
 python -m ruff check .
+
+# automatic correction
+ruff check --fix .
 ```
 
 ## Running Tests
