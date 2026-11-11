@@ -24,7 +24,7 @@ def test_root_endpoint_returns_expected_response() -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert response.json() == {"message": "Hello, World!"}
+    assert response.json() == {"message": "Welcome Fast API by Gadelha TI", "status": "success"}
 
 
 def test_health_endpoint_returns_expected_response() -> None:

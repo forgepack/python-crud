@@ -8,16 +8,24 @@ version = "1.0.0"
 description = "Reusable Python application template built with FastAPI"
 requires-python = ">=3.13,<3.16"
 dependencies = [
-    "fastapi>=0.115.0,<1.0.0",
+    "fastapi>=0.115.14,<0.116.0",
     "uvicorn[standard]>=0.30.0,<1.0.0",
     "pydantic-settings>=2.4.0,<3.0.0",
+    "sqlalchemy>=2.0.41,<3.0.0",
+    "psycopg2-binary>=2.9.10,<3.0.0",
+    "python-multipart==0.0.9,<1.0.0",
+    "passlib[bcrypt]==1.7.4,<2.0.0",
+    "python-jose[cryptography]==3.5.0,<4.0.0",
+    "pydantic[email]==2.11.7,<3.0.0",
+    "python-dotenv==1.0.0,<2.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3.0,<10.0.0",
     "pytest-cov>=5.0.0,<8.0.0",
-    "httpx2>=2.0.0,<3.0.0",
+    "anyio>=4.0.0,<4.10.0",
+    "httpx>=0.28.0,<1.0.0",
     "ruff>=0.8.0,<1.0.0",
     "build>=1.2.0,<2.0.0",
 ]
@@ -44,4 +52,9 @@ select = [
     "N",        # naming convention
     "PT",       # pytest best practices
     "SIM",      # code simplifications
+]
+
+[tool.ruff.lint.per-file-ignores]
+"app/routers/*.py" = [
+    "B008",     # FastAPI-specific configuration
 ]

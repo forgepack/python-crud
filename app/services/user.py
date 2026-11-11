@@ -1,0 +1,239 @@
+import logging
+from datetime import UTC, datetime, timedelta
+from typing import Any
+from uuid import UUID
+
+from jose import ExpiredSignatureError, JWTError, jwt
+from passlib.context import CryptContext
+from pydantic import ValidationError
+from sqlalchemy.orm import Session
+
+from app.config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ALGORITHM,
+    JWT_REFRESH_SECRET_KEY,
+    JWT_SECRET_KEY,
+    REFRESH_TOKEN_EXPIRE_MINUTES,
+)
+from app.models.role import Role
+from app.models.user import User
+from app.schemas.user import DTOUserCreate, DTOUserRetrieve, DTOUserUpdate
+from app.services.base import ServiceBase, ServiceError
+from app.validations.validation import Validation
+
+logger = logging.getLogger(__name__)
+
+
+class ServiceUser(ServiceBase[User, DTOUserCreate, DTOUserUpdate, DTOUserRetrieve]):
+    """User service with additional user-specific methods."""
+
+    password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    MAX_FAILED_ATTEMPTS = 5
+    LOCKOUT_DURATION_MINUTES = 60
+
+    def __init__(self, db: Session):
+        super().__init__(User, db, DTOUserRetrieve)
+
+    def _increment_failed_attempts(self, user: User) -> None:
+        """Increments failed login attempts."""
+        user.failed_login_attempts += 1
+        if user.failed_login_attempts >= self.MAX_FAILED_ATTEMPTS:
+            user.locked_until = datetime.now() + timedelta(minutes=self.LOCKOUT_DURATION_MINUTES)
+            logger.warning(f"Account blocked for excessive attempts: {user.username}")
+
+    def _reset_failed_attempts(self, user: User) -> None:
+        """Resets failed attempts after successful login."""
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        user.last_login = datetime.now()
+
+    def _is_account_locked(self, user: User) -> bool:
+        """Checks if the account is blocked."""
+        if user.locked_until is None:
+            return False
+        if datetime.now() >= user.locked_until:
+            # Auto-unlock after period expires
+            user.locked_until = None
+            user.failed_login_attempts = 0
+            return False
+        return True
+
+    def get_current_user(self, token: str) -> DTOUserRetrieve:
+        """Resolves the authenticated user from the token"""
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            user_id: str = payload.get("sub")
+            if user_id is None:
+                raise ServiceError("Invalid token", code="invalid_token")
+            user = self._get_instance(UUID(user_id))
+            if not user or user.deleted_at is not None:
+                raise ServiceError("User not found", code="not_found")
+            return self._to_response_dto(user)
+        except ExpiredSignatureError:
+            raise ServiceError("Expired token", code="token_expired") from None
+        except JWTError:
+            raise ServiceError("Invalid token", code="invalid_token") from None
+
+    def create_access_token(self: str | Any, expires_delta: int = None) -> str:
+        if expires_delta is not None:
+            expires_delta = datetime.now(UTC) + expires_delta
+        else:
+            expires_delta = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+        to_encode = {"exp": expires_delta, "sub": str(self)}
+        encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, ALGORITHM)
+        return encoded_jwt
+
+    def create_refresh_token(self: str | Any, expires_delta: int = None) -> str:
+        if expires_delta is not None:
+            expires_delta = datetime.now(UTC) + expires_delta
+        else:
+            expires_delta = datetime.now(UTC) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+
+        to_encode = {"exp": expires_delta, "sub": str(self)}
+        encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
+        return encoded_jwt
+
+    def authenticate_user(self, username: str, password: str) -> DTOUserRetrieve | None:
+        """
+        Authenticates user and manages security controls.
+        Method for using the authentication system - DO NOT expose in the API.
+        """
+        try:
+            user = (
+                self.db.query(User)
+                .filter(User.username == username, User.deleted_at.is_(None))
+                .first()
+            )
+            if not user:
+                logger.warning(f"Incorrect username or password: {username}")
+                return None
+            if self._is_account_locked(user):
+                logger.warning(f"Login attempt to blocked account: {user.username}")
+                return None
+            if not user.is_active:
+                logger.warning(f"Attempted login to inactive account: {user.username}")
+                return None
+            if not self.password_context.verify(password, user._password_hash):
+                self._increment_failed_attempts(user)
+                self.db.commit()
+                logger.warning("Incorrect username or password")
+                return None
+            self._reset_failed_attempts(user)
+            self.db.commit()
+            return self._to_response_dto(user)
+
+        except Exception as e:
+            logger.error(f"Error during authentication: {str(e)}")
+            self.db.rollback()
+            return None
+
+    def unlock_account(self, user_id: UUID, current_user_id: UUID | None = None) -> bool:
+        """
+        Unlock an account manually (admins only).
+        Can be exposed on administrative endpoint with specific permissions.
+        """
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ServiceError(resource_name="User", resource_id=user_id)
+        try:
+            with self.transaction():
+                user.failed_login_attempts = 0
+                user.locked_until = None
+                if hasattr(user, "updated_by"):
+                    user.updated_by = current_user_id
+                logger.info(
+                    f"Account unlocked manually: {user.username} por usuário {current_user_id}"
+                )
+                return True
+        except Exception as e:
+            logger.error(f"Error unlocking account: {str(e)}")
+            raise ServiceError(f"Error unlocking account: {str(e)}") from e
+
+    def get_security_status(self, user_id: UUID) -> dict:
+        """
+        Returns security status (administrators only).
+        Can be used internally or on an administrative endpoint.
+        """
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ServiceError(resource_name="User", resource_id=user_id)
+        return {
+            "is_locked": self._is_account_locked(user),
+            "failed_attempts": user.failed_login_attempts,
+            "locked_until": user.locked_until,
+            "last_login": user.last_login,
+            "is_active": user.is_active,
+            "is_verified": user.is_verified,
+        }
+
+    def get_by_email(self, email: str, include_deleted: bool = False) -> DTOUserRetrieve | None:
+        """Get user by email"""
+        query = self.db.query(self.model).filter(self.model.email == email)
+        if not include_deleted and hasattr(self.model, "deleted_at"):
+            query = query.filter(self.model.deleted_at.is_(None))
+        instance = query.first()
+        return self._to_response_dto(instance) if instance else None
+
+    def get_by_username(
+        self, username: str, include_deleted: bool = False
+    ) -> DTOUserRetrieve | None:
+        """Get user by username"""
+        query = self.db.query(self.model).filter(self.model.username == username)
+        if not include_deleted and hasattr(self.model, "deleted_at"):
+            query = query.filter(self.model.deleted_at.is_(None))
+        instance = query.first()
+        return self._to_response_dto(instance) if instance else None
+
+    def update_roles(
+        self, user_id: UUID, role_ids: list[UUID], current_user_id: UUID | None = None
+    ) -> DTOUserRetrieve:
+        """Update user roles"""
+        if len(role_ids) > Validation.MAX_ROLES_PER_USER:
+            raise ValidationError(
+                message=f"A user cannot have more than {Validation.MAX_ROLES_PER_USER} roles",
+                errors={"role_ids": "Too many roles"},
+            )
+        if len(role_ids) != len(set(role_ids)):
+            raise ServiceError(
+                message="Papéis duplicados não são permitidos",
+                errors={"role_ids": "Duplicatas detectadas"},
+            )
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ServiceError(resource_name="User", resource_id=user_id)
+        roles = self.db.query(Role).filter(Role.id.in_(role_ids)).all()
+        if len(roles) != len(role_ids):
+            found_ids = {str(role.id) for role in roles}
+            missing_ids = [str(rid) for rid in role_ids if rid not in found_ids]
+            raise ServiceError(
+                message=f"Some roles not found: {', '.join(missing_ids)}", code="roles_not_found"
+            )
+        try:
+            user.roles = roles
+            if hasattr(user, "updated_by"):
+                user.updated_by = current_user_id
+            self.db.commit()
+            self.db.refresh(user)
+            return self._to_response_dto(user)
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error updating user roles: {str(e)}")
+            raise ServiceError(f"Error updating user roles: {str(e)}") from e
+
+    def set_password(
+        self, user_id: UUID, password: str, current_user_id: UUID | None = None
+    ) -> bool:
+        """Set user password hash"""
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ServiceError(f"User with id {user_id} not found")
+        try:
+            user._password_hash = self.password_context.hash(password)
+            if hasattr(user, "updated_by"):
+                user.updated_by = current_user_id
+            self.db.commit()
+            return True
+        except Exception as e:
+            self.db.rollback()
+            raise ServiceError(f"Error setting password: {str(e)}") from e

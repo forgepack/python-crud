@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class BaseConfig:
+    """Base configuration for all models"""
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True,
+        validate_assignment=True,
+    )
+
+
+class DTOMixinAudit(BaseModel):
+    """Mixin for complete audit fields in DTOs"""
+
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    created_by: UUID | None = None
+    updated_by: UUID | None = None
+    version_id: int = Field(
+        default=1, description="Registry version for concurrency control", examples=[1], ge=1
+    )
+
+    model_config = BaseConfig.model_config
+
+
+class DTOSoftDeleteMixin(BaseModel):
+    """Mixin for soft delete fields in DTOs"""
+
+    deleted_at: datetime | None = None
+    deleted_by: UUID | None = None
+
+    model_config = BaseConfig.model_config
+
+
+class DTOPagination(BaseModel):
+    """DTO for paginated response"""
+
+    total: int = Field(description="Total number of items")
+    page: int = Field(default=1, ge=1, description="Current page")
+    limit: int = Field(default=20, ge=1, le=100, description="Items per page")
+    total_pages: int = Field(description="Total number of pages")
+    has_next: bool = Field(description="Whether there is a next page")
+    has_prev: bool = Field(description="Whether there is a previous page")
+
+    model_config = BaseConfig.model_config
+
+
+class ValidationError(BaseModel):
+    """DTO for validation error details"""
+
+    field: str
+    rejected_value: str
+    message: str
+
+    model_config = BaseConfig.model_config
+
+
+class ResponseError(BaseModel):
+    """DTO for error response"""
+
+    code: int
+    status: str
+    message: str
+    # path:  str | None
+    # timestamp:  datetime | None
+    validation_errors: list[ValidationError] | None = None
+
+    model_config = BaseConfig.model_config
+
+
+class SchemaSwagger(BaseModel):
+    username: str = Field(min_length=3, max_length=255)
+    password: str = Field(min_length=8, max_length=255)
