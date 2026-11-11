@@ -27,8 +27,13 @@ def create_tables() -> None:
     """Create the database schema and all registered tables if they do not exist."""
 
     with engine.begin() as connection:
-        if DATABASE_SCHEMA:
-            connection.execute(CreateSchema(DATABASE_SCHEMA, if_not_exists=True))
+        if connection.dialect.name == "postgresql" and DATABASE_SCHEMA:
+            connection.execute(
+                CreateSchema(
+                    DATABASE_SCHEMA,
+                    if_not_exists=True,
+                )
+            )
 
         Base.metadata.create_all(bind=connection)
 
