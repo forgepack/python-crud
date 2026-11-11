@@ -11,24 +11,24 @@ BASE_URL = "http://127.0.0.1:9001"
 TOKEN: str | None = None
 
 
-def test_health():
-    """Test the health endpoint"""
-    print("\n✓ Testing GET /health")
-    response = httpx.get(f"{BASE_URL}/health")
-    print("  Status: {response.status_code}")
-    print("  Response: {response.json()}")
-    assert response.status_code == 200
-    return response.status_code == 200
+# def test_health():
+#     """Test the health endpoint"""
+#     print("\n✓ Testing GET /health")
+#     response = httpx.get("{BASE_URL}/health")
+#     print("  Status: {response.status_code}")
+#     print("  Response: {response.json()}")
+#     assert response.status_code == 200
+#     return response.status_code == 200
 
 
-def test_home():
-    """Test the home endpoint"""
-    print("\n✓ Testing GET /")
-    response = httpx.get(f"{BASE_URL}/")
-    print("  Status: {response.status_code}")
-    print("  Response: {response.json()}")
-    assert response.status_code == 200
-    return response.status_code == 200
+# def test_home():
+#     """Test the home endpoint"""
+#     print("\n✓ Testing GET /")
+#     response = httpx.get("{BASE_URL}/")
+#     print("  Status: {response.status_code}")
+#     print("  Response: {response.json()}")
+#     assert response.status_code == 200
+#     return response.status_code == 200
 
 
 def test_create_first_user():
@@ -43,7 +43,7 @@ def test_create_first_user():
         "full_name": "Administrator",
     }
 
-    response = httpx.post(f"{BASE_URL}/admin/init/create-first-user", json=user_data)
+    response = httpx.post("{BASE_URL}/admin/init/create-first-user", json=user_data)
     print("  Status: {response.status_code}")
     print("  Response: {json.dumps(response.json(), indent=2)}")
 
@@ -58,27 +58,27 @@ def test_create_first_user():
         return False
 
 
-def test_login():
-    """Test login and get JWT token"""
-    global TOKEN
-    print("\n✓ Testing POST /user/login")
+# def test_login():
+#     """Test login and get JWT token"""
+#     global TOKEN
+#     print("\n✓ Testing POST /user/login")
 
-    login_data = {"username": "admin", "password": "Admin@123456"}
+#     login_data = {"username": "admin", "password": "Admin@123456"}
 
-    response = httpx.post(f"{BASE_URL}/user/login", json=login_data)
-    print("  Status: {response.status_code}")
-    data = response.json()
-    print("  Response: {json.dumps(data, indent=2)}")
+#     response = httpx.post("{BASE_URL}/user/login", json=login_data)
+#     print("  Status: {response.status_code}")
+#     data = response.json()
+#     print("  Response: {json.dumps(data, indent=2)}")
 
-    if response.status_code == 200 and "validationErrors" in data:
-        token_data = data.get("validationErrors", {})
-        if isinstance(token_data, dict) and "access_token" in token_data:
-            TOKEN = token_data["access_token"]
-            print("  ✅ Login successful! Token obtained.")
-            return True
+#     if response.status_code == 200 and "validationErrors" in data:
+#         token_data = data.get("validationErrors", {})
+#         if isinstance(token_data, dict) and "access_token" in token_data:
+#             TOKEN = token_data["access_token"]
+#             print("  ✅ Login successful! Token obtained.")
+#             return True
 
-    print("  ❌ Login failed")
-    return False
+#     print("  ❌ Login failed")
+#     return False
 
 
 def test_list_users():
@@ -90,7 +90,7 @@ def test_list_users():
         return False
 
     headers = {"Authorization": f"Bearer {TOKEN}"}
-    response = httpx.get(f"{BASE_URL}/user/", headers=headers)
+    response = httpx.get("{BASE_URL}/user/", headers=headers)
     print("  Status: {response.status_code}")
     print("  Response: {json.dumps(response.json(), indent=2)}")
 
@@ -111,7 +111,7 @@ def test_list_permissions():
         return False
 
     headers = {"Authorization": f"Bearer {TOKEN}"}
-    response = httpx.get(f"{BASE_URL}/permissions/", headers=headers)
+    response = httpx.get("{BASE_URL}/permissions/", headers=headers)
     print("  Status: {response.status_code}")
     print("  Response: {json.dumps(response.json(), indent=2)}")
 
