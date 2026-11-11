@@ -29,17 +29,17 @@ async def create_swagger(
 async def login(request: SchemaSwagger, db: Session = Depends(get_db)):
     """
     Authenticate user with username and password.
-    
+
     Returns a JWT token that must be included in the Authorization header for protected endpoints.
-    
+
     **Parameters:**
     - **username** (string): User's username
     - **password** (string): User's password
-    
+
     **Returns:**
     - **access_token**: JWT token to use in Authorization header
     - **token_type**: "bearer"
-    
+
     **Example:**
     ```json
     {
@@ -69,18 +69,18 @@ async def create_user(
 ):
     """
     Create a new user in the system.
-    
+
     **Requires authentication:** Bearer token from /user/login endpoint
-    
+
     **Parameters:**
     - **username** (string): Unique username
     - **email** (string): User's email address
     - **password** (string): Secure password
     - **full_name** (string): User's full name
-    
+
     **Returns:**
     - Created user object with id, username, email, and full_name
-    
+
     **Status Codes:**
     - 201: User created successfully
     - 400: Invalid input data
@@ -113,16 +113,16 @@ async def get(
 ):
     """
     Retrieve all users from the system.
-    
+
     **Requires authentication:** Bearer token from /user/login endpoint
-    
+
     **Query Parameters:**
     - **page** (int, optional): Page number (default: 1)
     - **limit** (int, optional): Items per page (default: 20, max: 100)
-    
+
     **Returns:**
     - List of user objects with pagination info
-    
+
     **Status Codes:**
     - 200: Users retrieved successfully
     - 401: Authentication required
@@ -141,13 +141,13 @@ async def get(
 async def get_by_id(id: UUID, db: Session = Depends(get_db)):
     """
     Retrieve a specific user by their ID.
-    
+
     **Path Parameters:**
     - **id** (UUID): User's unique identifier
-    
+
     **Returns:**
     - User object with id, username, email, full_name, and metadata
-    
+
     **Status Codes:**
     - 200: User found
     - 404: User not found
@@ -172,18 +172,18 @@ async def update(
 ):
     """
     Update an existing user's information.
-    
+
     **Requires authentication:** Bearer token from /user/login endpoint
-    
+
     **Parameters:**
     - **id** (UUID): User's unique identifier
     - **email** (string, optional): New email address
     - **full_name** (string, optional): New full name
     - Other optional fields to update
-    
+
     **Returns:**
     - Updated user object
-    
+
     **Status Codes:**
     - 202: User updated successfully
     - 404: User not found
@@ -207,15 +207,15 @@ async def delete(
 ):
     """
     Delete a user from the system.
-    
+
     **Requires authentication:** Bearer token from /user/login endpoint
-    
+
     **Path Parameters:**
     - **id** (UUID): User's unique identifier
-    
+
     **Returns:**
     - No content (HTTP 204 status)
-    
+
     **Status Codes:**
     - 204: User deleted successfully
     - 404: User not found

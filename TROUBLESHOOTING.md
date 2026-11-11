@@ -6,13 +6,13 @@
 **Problema**: O CORS estava limitado a apenas o método `POST`
 ```python
 # ❌ ANTES
-allow_methods=["POST"],
+allow_methods = (["POST"],)
 ```
 
 **Solução**: Permitir todos os métodos HTTP
 ```python
 # ✅ DEPOIS
-allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+allow_methods = (["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],)
 ```
 
 **Impacto**: Você receberia erros CORS ao tentar fazer requisições GET, PUT, DELETE, etc.
@@ -26,6 +26,7 @@ allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 ```python
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
@@ -43,8 +44,7 @@ async def create_user(
     request: DTOUserCreate,
     db: Session = Depends(get_db),
     current_user=Depends(ServiceUser.get_current_user),  # ❌ Requer autenticação
-):
-    ...
+): ...
 ```
 
 **Solução**: Adicionado endpoint de inicialização sem autenticação

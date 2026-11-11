@@ -1,6 +1,5 @@
 import uvicorn
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
@@ -78,7 +77,7 @@ async def home():
 async def health():
     """
     Health check endpoint - Verifies API is running
-    
+
     Returns:
         - status: "healthy" if API is running correctly
     """

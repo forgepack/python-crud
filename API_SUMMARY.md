@@ -28,10 +28,10 @@ Construído com **FastAPI** e **PostgreSQL**, com autenticação JWT.
 ### 1. **CORS Corrigido**
 ```python
 # ❌ ANTES: Apenas POST
-allow_methods=["POST"],
+allow_methods = (["POST"],)
 
 # ✅ DEPOIS: Todos os métodos
-allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+allow_methods = (["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],)
 ```
 
 ### 2. **Ponto de Entrada Adicionado**
@@ -39,6 +39,7 @@ allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 # ✅ NOVO: Agora funciona
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
