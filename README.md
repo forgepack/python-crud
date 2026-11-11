@@ -18,21 +18,35 @@ Reusable Python application template built with FastAPI.
 ![Python](https://img.shields.io/badge/Python-3.13%2B-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
 
-## Endpoints
+## 📖 Interactive API Documentation
 
-- `GET /` returns `{"message": "Hello, World!"}`.
-- `GET /health` returns `{"status": "healthy"}`.
-- `POST /admin/init/create-first-user` creates the first admin user (no auth required).
-- `POST /user/login` authenticates and returns JWT token.
-- `GET /user/` lists all users (requires authentication).
-- `POST /user/` creates a new user (requires authentication).
-- `GET /user/{id}` gets a user by ID.
-- `PUT /user/` updates a user (requires authentication).
-- `DELETE /user/{id}` deletes a user (requires authentication).
-- `GET /role/`, `POST /role/`, `PUT /role/`, `DELETE /role/{id}` for role management.
-- `GET /permissions/`, `DELETE /permissions/{id}` for permission management.
+The API includes automatic interactive documentation powered by **Swagger UI** and **OpenAPI**:
 
-**Full API documentation**: See [ENDPOINTS.md](./ENDPOINTS.md)
+- **Swagger UI** (Interactive): http://127.0.0.1:9001/docs
+- **ReDoc** (Alternative): http://127.0.0.1:9001/redoc
+- **OpenAPI Schema**: http://127.0.0.1:9001/openapi.json
+
+### Key Endpoints
+
+**Public (no auth required):**
+- `GET /health` - Health check
+- `GET /` - Welcome message
+- `POST /user/login` - Authenticate and get JWT token
+- `POST /admin/init/create-first-user` - Create first user (database initialization)
+
+**Protected (requires JWT Bearer token):**
+- `POST /user/` - Create user
+- `GET /user/` - List users
+- `GET /user/{id}` - Get user by ID
+- `PUT /user/` - Update user
+- `DELETE /user/{id}` - Delete user
+- `GET /role/`, `POST /role/`, `PUT /role/`, `DELETE /role/{id}` - Role management
+- `GET /permissions/`, `DELETE /permissions/{id}` - Permission management
+
+**Documentation:**
+- [SWAGGER_GUIDE.md](./SWAGGER_GUIDE.md) - Complete Swagger UI tutorial
+- [SWAGGER_INTEGRATION.md](./SWAGGER_INTEGRATION.md) - OpenAPI integration details
+- [ENDPOINTS.md](./ENDPOINTS.md) - cURL examples for all endpoints
 
 ## Configuration
 ### _Windows PowerShell_
