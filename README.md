@@ -94,17 +94,17 @@ python -m app.main
 ## Ruff linter formatting
 
 ```bash
-# checks whether the code follows the formatting standard
-python -m ruff format --check .
-
 # automatically formats the code to follow the standard
 python -m ruff format .
 
-# identifies linting issues and potential code errors
-python -m ruff check .
+# checks whether the code follows the formatting standard
+python -m ruff format --check .
 
 # automatic correction
 ruff check --fix .
+
+# identifies linting issues and potential code errors
+python -m ruff check .
 ```
 
 ## Running Tests
